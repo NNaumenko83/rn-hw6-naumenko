@@ -13,7 +13,11 @@ import {
 
 import { StatusBar } from "expo-status-bar";
 
+import { useDispatch } from "react-redux";
+
 import { useState, useEffect } from "react";
+
+import { authSignUpUser } from "../../../redux/auth/authOperations";
 
 const initialState = {
   login: "",
@@ -34,6 +38,8 @@ export default RegistrationScreen = ({ navigation }) => {
   const [emailInputIsFocused, setEmailInputIsFocused] = useState(false);
   const [passwordInputIsFocused, setPasswordInputIsFocused] = useState(false);
 
+  const dispatch = useDispatch();
+
   const setShowKeyboard = () => {
     setKeyboardStatus(true);
   };
@@ -53,7 +59,7 @@ export default RegistrationScreen = ({ navigation }) => {
   });
 
   const handleSubmit = () => {
-    console.log(state);
+    dispatch(authSignUpUser(state));
     setState(initialState);
   };
 

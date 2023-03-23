@@ -20,7 +20,7 @@ import { SimpleLineIcons } from "@expo/vector-icons";
 export default DefaultScreenPosts = ({ route, navigation }) => {
   const [posts, setPosts] = useState([]);
 
-  console.log(route.params);
+  // console.log(route.params);
 
   useEffect(() => {
     if (route.params) {

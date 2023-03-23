@@ -11,6 +11,9 @@ import {
   Keyboard,
 } from "react-native";
 
+import { useDispatch } from "react-redux";
+import { authSignInUser } from "../../../redux/auth/authOperations";
+
 import { StatusBar } from "expo-status-bar";
 
 import { useState, useEffect } from "react";
@@ -47,8 +50,10 @@ export default LoginScreen = ({ navigation }) => {
     };
   });
 
+  const dispatch = useDispatch();
+
   const handleSubmit = () => {
-    console.log(state);
+    dispatch(authSignInUser(state));
     setState(initialState);
   };
 
