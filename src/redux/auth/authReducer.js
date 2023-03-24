@@ -4,14 +4,19 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     userId: null,
-    nikname: null,
+    nickName: null,
+    stateChange: null,
   },
   reducers: {
     updateUserProfile(state, { payload }) {
       console.log("payload:", payload);
 
-      return { ...state, userId: payload };
+      return { ...state, userId: payload.userId, nickName: payload.nickName };
     },
+    authStateChange: (state, { payload }) => ({
+      ...state,
+      stateChange: payload.stateChange,
+    }),
   },
 });
 

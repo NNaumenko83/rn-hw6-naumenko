@@ -10,7 +10,7 @@ import db from "./firebase/config";
 
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-const auth = getAuth(db);
+const auth = getAuth();
 
 // import MapScreen from "./src/Screens/MapScreen/MapScreen";
 // import CommentsScreen from "./src/Screens/CommentsScreen/CommentsScreen";
@@ -25,10 +25,33 @@ export default function App() {
     "Inter-VariableFont": require("./assets/fonts/Inter-VariableFont.ttf"),
   });
 
-  onAuthStateChanged(auth, (user) => {
-    setUser(user);
-    console.log("userState:", user);
-  });
+  useEffect(
+    () =>
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log("user:", user);
+
+          setUser(user);
+          // ...
+        } else {
+          console.log("user: not found");
+        }
+      }),
+    []
+  );
+
+  // useEffect(
+  //   onAuthStateChanged(auth, (user) => {
+  //     if (user) {
+  //       console.log("auth:", auth);
+
+  //       setUser(user);
+  //       return;
+  //     }
+  //     console.log("userState:", user);
+  //   }),
+  //   []
+  // );
 
   const routing = useRoute(user);
 
