@@ -1,10 +1,12 @@
-import db from "../../../firebase/config";
-
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+
+import db from "../../../firebase/config";
+
+import { updateUserProfile } from "./authReducer";
 
 const auth = getAuth();
 
@@ -24,8 +26,15 @@ export const authSignUpUser =
   ({ email, password }) =>
   async (dispatch, getState) => {
     try {
-      const user = await createUserWithEmailAndPassword(auth, email, password);
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       console.log("user:", user);
+
+      console.log("updateUserProfile:", updateUserProfile);
+      dispatch(updateUserProfile(user.uid));
     } catch (error) {
       console.log("error", error.message);
     }

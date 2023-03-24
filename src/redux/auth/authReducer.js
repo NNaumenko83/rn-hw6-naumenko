@@ -5,10 +5,16 @@ const authSlice = createSlice({
   initialState: {
     userId: null,
     nikname: null,
-    reducers: {},
+  },
+  reducers: {
+    updateUserProfile(state, { payload }) {
+      console.log("payload:", payload);
+
+      return { ...state, userId: payload };
+    },
   },
 });
 
-export const {} = authSlice.actions;
+export const { updateUserProfile } = authSlice.actions;
 
 export default authSlice.reducer;
