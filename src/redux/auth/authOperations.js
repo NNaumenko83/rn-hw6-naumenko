@@ -8,9 +8,9 @@ import {
 
 import db from "../../../firebase/config";
 
-import { updateUserProfile } from "./authReducer";
+import { updateUserProfile, authStateChange } from "./authReducer";
 
-const auth = getAuth();
+const auth = getAuth(db);
 
 // Вхід
 export const authSignInUser =
@@ -34,7 +34,7 @@ export const authSignUpUser =
         displayName: login,
       });
 
-      const { uid, displayName } = await auth.currentUser;
+      const { uid, displayName } = auth.currentUser;
       dispatch(
         updateUserProfile({
           userId: uid,
@@ -46,6 +46,24 @@ export const authSignUpUser =
     }
   };
 // Вихід
-export const authSignOutUser = () => async (dispatch, getState) => {};
+export const authSignOutUser = () => async (dispatch, getState) => {
+  await signOut(auth);
+};
 
-export const onAuthStateChangedUser = (dispatch, getState) => {};
+export const onAuthStateChangedUser = () => async (dispatch, getState) => {
+  await onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("user:", user);
+      dispatch(
+        updateUserProfile({
+          userId: user.uid,
+          nickName: user.displayName,
+        })
+      );
+      dispatch(authStateChange({ stateChange: true }));
+      // setUser(user);
+    } else {
+      console.log("user: not found");
+    }
+  });
+};
