@@ -1,4 +1,3 @@
-import db from "./firebase/config";
 import { StyleSheet } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useState, useEffect } from "react";
@@ -7,12 +6,9 @@ import { Provider } from "react-redux";
 
 import { store } from "./src/redux/store";
 import { useRoute } from "./router";
+import db from "./firebase/config";
 
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const auth = getAuth(db);
 
@@ -29,7 +25,7 @@ export default function App() {
     "Inter-VariableFont": require("./assets/fonts/Inter-VariableFont.ttf"),
   });
 
-  auth.onAuthStateChanged((user) => {
+  onAuthStateChanged(auth, (user) => {
     setUser(user);
     console.log("userState:", user);
   });
