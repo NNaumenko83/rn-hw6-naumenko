@@ -4,11 +4,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  TouchableWithoutFeedback,
-  Platform,
-  KeyboardAvoidingView,
-  ImageBackground,
-  Keyboard,
   Image,
 } from "react-native";
 import { Fontisto } from "@expo/vector-icons";
@@ -17,12 +12,11 @@ import React, { useState, useEffect } from "react";
 import { Camera, CameraType } from "expo-camera";
 
 import * as Location from "expo-location";
-import { Permissions } from "expo-permissions";
+
 import { SimpleLineIcons } from "@expo/vector-icons";
 
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
-// Create a root reference
 const storage = getStorage();
 
 export default CreatePostsScreen = ({ navigation }) => {
@@ -72,30 +66,31 @@ export default CreatePostsScreen = ({ navigation }) => {
     });
   };
 
-  // import { getStorage, ref, uploadBytes } from "firebase/storage";
-
-  // const storage = getStorage();
-  // const storageRef = ref(storage, "some-child");
-
-  // // 'file' comes from the Blob or File API
-  // uploadBytes(storageRef, file).then((snapshot) => {
-  //   console.log("Uploaded a blob or file!");
-  // });
-
   const uploadPhotoServer = async () => {
-    const response = await fetch(photo);
-    console.log("response:", response);
+    console.log("storage:", storage);
+    console.log("photo:", photo);
+    try {
+      const response = await fetch(photo);
 
-    const file = await response.blob();
-    console.log("file:", file);
+      const file = await response.blob();
 
-    const uniquePostId = Date.now().toString();
-    console.log("uniquePostId:", uniquePostId);
+      const uniquePostId = Date.now().toString();
+      console.log("uniquePostId:", uniquePostId);
 
-    const postImagesRef = ref(storage, `postsImages`);
-    // const postImageRef = ref(storage, `postsImages/${uniquePostId}`);
+      const storageRef = ref(storage);
+      console.log("storageRef:", storageRef);
 
-    await uploadBytes(postImagesRef, file);
+      const imagesRef = ref(storage, "images");
+      console.log("imagesRef:", imagesRef);
+
+      const imageRef = ref(storage, `images/${uniquePostId}`);
+      console.log("imageRef:", imageRef);
+
+      const result = await uploadBytes(imageRef, response);
+      console.log("result:", result);
+    } catch (error) {
+      console.log("error:", error.message);
+    }
   };
 
   return (
