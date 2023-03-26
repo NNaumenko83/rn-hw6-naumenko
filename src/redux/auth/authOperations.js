@@ -4,18 +4,16 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
   updateProfile,
+  signOut,
 } from "firebase/auth";
-
 import db from "../../../firebase/config";
-
-import { updateUserProfile, authStateChange } from "./authReducer";
+import { updateUserProfile, authStateChange, authSignOut } from "./authReducer";
 
 const auth = getAuth(db);
 
-// Вхід
 export const authSignInUser =
   ({ email, password }) =>
-  async (dispatch, getState) => {
+  async (dispatch) => {
     try {
       const user = await signInWithEmailAndPassword(auth, email, password);
       console.log("user:", user);
@@ -23,35 +21,44 @@ export const authSignInUser =
       console.log("error", error.message);
     }
   };
-// Реєстрація
+
 export const authSignUpUser =
   ({ login, email, password }) =>
-  async (dispatch, getState) => {
+  async (dispatch) => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-
-      await updateProfile(auth.currentUser, {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      await updateProfile(userCredential.user, {
         displayName: login,
       });
 
-      const { uid, displayName } = auth.currentUser;
+      const { uid, displayName } = userCredential.user;
       dispatch(
         updateUserProfile({
           userId: uid,
           nickName: displayName,
         })
       );
+      dispatch(authStateChange({ stateChange: true }));
     } catch (error) {
       console.log("error", error.message);
     }
   };
-// Вихід
-export const authSignOutUser = () => async (dispatch, getState) => {
+
+export const authSignOutUser = () => async (dispatch) => {
   await signOut(auth);
+  console.log("authSignOutUser:", auth);
+
+  dispatch(authSignOut());
 };
 
-export const onAuthStateChangedUser = () => async (dispatch, getState) => {
+export const onAuthStateChangedUser = () => async (dispatch) => {
   await onAuthStateChanged(auth, (user) => {
+    console.log("user:", user);
+    console.log("auth:", auth);
     if (user) {
       console.log("user:", user);
       dispatch(
@@ -61,7 +68,6 @@ export const onAuthStateChangedUser = () => async (dispatch, getState) => {
         })
       );
       dispatch(authStateChange({ stateChange: true }));
-      // setUser(user);
     } else {
       console.log("user: not found");
     }

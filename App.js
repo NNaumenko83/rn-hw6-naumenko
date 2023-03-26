@@ -4,6 +4,7 @@ import { useFonts } from "expo-font";
 import { Provider } from "react-redux";
 import { store } from "./src/redux/store";
 import { Main } from "./components/Main/Main";
+import "./firebase/config";
 
 export default function App() {
   const [fontsLoaded] = useFonts({

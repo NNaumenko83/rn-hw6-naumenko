@@ -3,8 +3,8 @@ import { moduleName } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getAuth, signOut } from "firebase/auth";
-
-const auth = getAuth();
+import { useDispatch } from "react-redux";
+import { authSignOutUser } from "../../redux/auth/authOperations";
 
 import DefaultScreenPosts from "../nestedScreens/DefaultScreenPosts";
 import MapScreen from "../nestedScreens/MapScreen";
@@ -13,6 +13,7 @@ import CommentsScreen from "../nestedScreens/CommentsScreen";
 const NestedScreen = createNativeStackNavigator();
 
 export default PostScreen = () => {
+  const dispatch = useDispatch();
   return (
     <NestedScreen.Navigator>
       <NestedScreen.Screen
@@ -22,7 +23,7 @@ export default PostScreen = () => {
               name="logout"
               size={24}
               color="black"
-              onPress={() => signOut(auth)}
+              onPress={() => dispatch(authSignOutUser())}
             />
           ),
           title: "Публикации",

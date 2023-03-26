@@ -20,6 +20,11 @@ import * as Location from "expo-location";
 import { Permissions } from "expo-permissions";
 import { SimpleLineIcons } from "@expo/vector-icons";
 
+import { getStorage, ref, uploadBytes } from "firebase/storage";
+
+// Create a root reference
+const storage = getStorage();
+
 export default CreatePostsScreen = ({ navigation }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
@@ -59,11 +64,38 @@ export default CreatePostsScreen = ({ navigation }) => {
   };
 
   const sendPhoto = () => {
+    uploadPhotoServer();
     navigation.navigate("DefaultScreenPosts", {
       photo,
       photoName,
       photoLocationName,
     });
+  };
+
+  // import { getStorage, ref, uploadBytes } from "firebase/storage";
+
+  // const storage = getStorage();
+  // const storageRef = ref(storage, "some-child");
+
+  // // 'file' comes from the Blob or File API
+  // uploadBytes(storageRef, file).then((snapshot) => {
+  //   console.log("Uploaded a blob or file!");
+  // });
+
+  const uploadPhotoServer = async () => {
+    const response = await fetch(photo);
+    console.log("response:", response);
+
+    const file = await response.blob();
+    console.log("file:", file);
+
+    const uniquePostId = Date.now().toString();
+    console.log("uniquePostId:", uniquePostId);
+
+    const postImagesRef = ref(storage, `postsImages`);
+    // const postImageRef = ref(storage, `postsImages/${uniquePostId}`);
+
+    await uploadBytes(postImagesRef, file);
   };
 
   return (
