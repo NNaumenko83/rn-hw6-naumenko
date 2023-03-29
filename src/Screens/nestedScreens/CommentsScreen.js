@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,33 +8,57 @@ import {
   TouchableWithoutFeedback,
   StyleSheet,
   Keyboard,
+  SafeAreaView,
+  FlatList,
 } from "react-native";
 
 import { useSelector } from "react-redux";
 
-import { doc, setDoc } from "firebase/firestore";
+import { doc, collection, addDoc, getDocs } from "firebase/firestore";
 import { Feather } from "@expo/vector-icons";
 import { db } from "../../../firebase/config";
 
 export default CommentsScreen = ({ route }) => {
   const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
+  const [sendedComment, setSendedComment] = useState("");
+  const [allComments, setAllComments] = useState([]);
   const { nickName } = useSelector((state) => state.auth);
   const { postId } = route.params;
-  console.log("postId:", postId);
+
   const handleCommentChange = (text) => {
     setComment(text);
   };
 
+  useEffect(() => {
+    getAllPosts();
+  }, [sendedComment]);
+
   const createPost = async () => {
-    const commentsRef = doc(db, "posts", postId, "comments");
-    await setDoc(commentsRef, { comment, nickName }, { merge: true });
+    // const commentsRef = db.collection("posts").document(postId);
+
+    const docRef = await doc(db, `posts/${postId}`);
+
+    const colRef = await collection(docRef, "comments");
+    addDoc(colRef, {
+      comment,
+      nickName,
+    });
+    setSendedComment(comment);
     setComment("");
   };
 
-  const handleCommentSubmit = () => {
-    setComments([...comments, comment]);
-    setComment("");
+  const getAllPosts = async () => {
+    const querySnapshot = await getDocs(
+      collection(db, `posts/${postId}/comments`)
+    );
+    const allCommentsArray = [];
+
+    querySnapshot.forEach((doc) => {
+      allCommentsArray.push({ ...doc.data(), id: doc.id });
+    });
+    setAllComments(allCommentsArray);
+
+    console.log("allCommentsArray:", allCommentsArray);
   };
 
   return (
@@ -50,13 +74,24 @@ export default CommentsScreen = ({ route }) => {
             style={styles.image}
           />
         </View>
-        <View style={styles.commentContainer}>
-          {comments.map((c, index) => (
-            <View key={index} style={styles.comment}>
-              <Text>{c}</Text>
-            </View>
-          ))}
-        </View>
+        <SafeAreaView style={styles.containerListComments}>
+          <FlatList
+            data={allComments}
+            renderItem={({ item }) => (
+              <View style={styles.containerComment}>
+                <View style={styles.textContainerComment}>
+                  <Text style={styles.imageComment}>{item.comment}</Text>
+                </View>
+                <Image
+                  source={{ uri: "https://picsum.photos/200" }}
+                  style={styles.imageComment}
+                />
+              </View>
+            )}
+            keyExtractor={(item) => item.id}
+            // extraData={selectedId}
+          />
+        </SafeAreaView>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -83,7 +118,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   imageContainer: {
-    flex: 1,
     marginHorizontal: 16,
     marginTop: 32,
     alignItems: "center",
@@ -139,5 +173,32 @@ const styles = StyleSheet.create({
   arrow: {
     color: "white",
     fontSize: 30,
+  },
+
+  containerComment: {
+    borderWidth: 2,
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  textContainerComment: {
+    flex: 1,
+  },
+  imageComment: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginLeft: 16,
+  },
+  textComment: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  containerListComments: {
+    marginTop: 34,
+    flex: 1,
   },
 });
