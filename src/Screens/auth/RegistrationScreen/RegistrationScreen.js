@@ -9,13 +9,19 @@ import {
   KeyboardAvoidingView,
   ImageBackground,
   Keyboard,
+  Image,
+  Button,
+  Alert,
 } from "react-native";
+
+import * as ImagePicker from "expo-image-picker";
 
 import { StatusBar } from "expo-status-bar";
 
 import { useDispatch } from "react-redux";
 
 import { useState, useEffect } from "react";
+import { AntDesign } from "@expo/vector-icons";
 
 import { authSignUpUser } from "../../../redux/auth/authOperations";
 
@@ -25,7 +31,8 @@ const initialState = {
   password: "",
 };
 
-const btnImg = require("../../../../assets/images/add.png");
+const btnImgAdd = require("../../../../assets/images/add.png");
+const btnImgDelete = require("../../../../assets/images/delete.png");
 
 const backgroundImage = require("../../../../assets/images/bg_new.png");
 
@@ -33,6 +40,7 @@ export default RegistrationScreen = ({ navigation }) => {
   const [keyboardStatus, setKeyboardStatus] = useState(false);
   const [state, setState] = useState(initialState);
   const [isSequre, setIsSequre] = useState(true);
+  const [image, setImage] = useState(null);
 
   const [loginInputIsFocused, setLoginInputIsFocused] = useState(false);
   const [emailInputIsFocused, setEmailInputIsFocused] = useState(false);
@@ -42,6 +50,26 @@ export default RegistrationScreen = ({ navigation }) => {
 
   const setShowKeyboard = () => {
     setKeyboardStatus(true);
+  };
+
+  // Завантаження фото з бібліотеки
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [3, 3],
+      quality: 1,
+    });
+
+    console.log("result:", result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const deleteImage = () => {
+    setImage(null);
   };
 
   useEffect(() => {
@@ -88,12 +116,50 @@ export default RegistrationScreen = ({ navigation }) => {
                   },
                 ]}
               >
-                <TouchableOpacity style={styles.addbutton} activeOpacity={0.5}>
-                  <ImageBackground
-                    source={btnImg}
-                    style={{ width: "100%", height: "100%" }}
-                  ></ImageBackground>
-                </TouchableOpacity>
+                {!image ? (
+                  <>
+                    <Image
+                      source={{ uri: image }}
+                      style={{
+                        borderRadius: 15,
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+
+                    <TouchableOpacity
+                      style={styles.addbutton}
+                      activeOpacity={0.5}
+                      onPress={pickImage}
+                    >
+                      <AntDesign name="pluscircleo" size={24} color="#FF6C00" />
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      source={{ uri: image }}
+                      style={{
+                        borderRadius: 15,
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+
+                    <TouchableOpacity
+                      style={styles.addbutton}
+                      activeOpacity={0.5}
+                      onPress={deleteImage}
+                    >
+                      <AntDesign
+                        name="closecircleo"
+                        size={24}
+                        color="#E8E8E8"
+                        style={{ backgroundColor: "white", borderRadius: 12 }}
+                      />
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
 
               <View style={{ alignItems: "center" }}>
@@ -240,8 +306,10 @@ export default RegistrationScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   addbutton: {
-    marginTop: "65%",
+    position: "absolute",
+    top: 70,
     left: "90%",
+
     height: 25,
     width: 25,
     pointerEvents: "auto",
@@ -323,3 +391,72 @@ const styles = StyleSheet.create({
     color: "#1B4371",
   },
 });
+
+// import * as firebase from 'firebase';
+
+// const firebaseConfig = {
+//   // конфигурация Firebase
+// };
+
+// if (!firebase.apps.length) {
+//   firebase.initializeApp(firebaseConfig);
+// }
+
+// export default function RegistrationScreen() {
+//   const [imageUri, setImageUri] = useState(null);
+//   const [login, setLogin] = useState('');
+//   const [password, setPassword] = useState('');
+
+//   const pickImage = async () => {
+//     const result = await ImagePicker.launchImageLibraryAsync({
+//       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+//       allowsEditing: true,
+//       aspect: [4, 3],
+//       quality: 1,
+//     });
+
+//
+
+//   const register = async () => {
+//     try {
+//       const response = await fetch(imageUri);
+//       const blob = await response.blob();
+//       const storageRef = firebase.storage().ref().child(`userPhoto/${login}.jpg`);
+//       await storageRef.put(blob);
+//       const downloadUrl = await storageRef.getDownloadURL();
+//       await firebase.auth().createUserWithEmailAndPassword(login, password);
+//       await firebase.firestore().collection('users').doc(login).set({
+//         photoUrl: downloadUrl,
+//       });
+//       Alert.alert('Success', 'User registered successfully!');
+//     } catch (error) {
+//       Alert.alert('Error', error.message);
+//     }
+//   };
+
+//   return (
+//     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+//       <Button title="Pick an image" onPress={pickImage} />
+//       {imageUri && (
+//         <Image
+//           source={{ uri: imageUri }}
+//           style={{ width: 200, height: 200, marginVertical: 20 }}
+//         />
+//       )}
+//       <TextInput
+//         style={{ height: 40, width: '80%', borderColor: 'gray', borderWidth: 1, marginVertical: 10 }}
+//         onChangeText={text => setLogin(text)}
+//         value={login}
+//         placeholder="Enter login"
+//       />
+//       <TextInput
+//         style={{ height: 40, width: '80%', borderColor: 'gray', borderWidth: 1, marginVertical: 10 }}
+//         onChangeText={text => setPassword(text)}
+//         value={password}
+//         placeholder="Enter password"
+//         secureTextEntry={true}
+//       />
+//       <Button title="Register" onPress={register} />
+//     </View>
+//   );
+// }
