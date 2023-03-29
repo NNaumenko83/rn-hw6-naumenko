@@ -8,6 +8,9 @@ import {
 } from "react-native";
 import { Fontisto } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+
+import { customAlphabet } from "nanoid/non-secure";
 
 import { Camera, CameraType } from "expo-camera";
 
@@ -15,7 +18,10 @@ import * as Location from "expo-location";
 
 import { SimpleLineIcons } from "@expo/vector-icons";
 
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, setDoc } from "firebase/firestore";
+
+import { db } from "../../../firebase/config";
 
 const storage = getStorage();
 
@@ -23,23 +29,36 @@ export default CreatePostsScreen = ({ navigation }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [photo, setPhoto] = useState(null);
+  const [location, setLocation] = useState(null);
 
   const [photoName, setPhotoName] = useState();
   const [photoLocationName, setPhotoLocationName] = useState();
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Permission to access location was denied");
-      }
-    })();
-  }, []);
+  const { userId, nickName } = useSelector((state) => state.auth);
+
+  // useEffect(() => {
+  //   (async () => {
+  //     let { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== "granted") {
+  //       console.log("Permission to access location was denied");
+  //     }
+  //   })();
+  // }, []);
 
   useEffect(() => {
     (async () => {
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
       setHasCameraPermission(cameraStatus.status === "granted");
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+
+      let location = await Location.getCurrentPositionAsync({});
+
+      setLocation(location);
     })();
   }, []);
 
@@ -52,13 +71,11 @@ export default CreatePostsScreen = ({ navigation }) => {
 
   const takePhoto = async () => {
     const photo = await cameraRef.takePictureAsync();
-    let location = await Location.getCurrentPositionAsync({});
-    console.log(location);
     setPhoto(photo.uri);
   };
 
   const sendPhoto = () => {
-    uploadPhotoServer();
+    uploadPostToServer();
     navigation.navigate("DefaultScreenPosts", {
       photo,
       photoName,
@@ -66,28 +83,50 @@ export default CreatePostsScreen = ({ navigation }) => {
     });
   };
 
-  const uploadPhotoServer = async () => {
-    console.log("storage:", storage);
+  const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 10);
+
+  const uploadPostToServer = async () => {
+    const photo = await uploadPhotoServer();
     console.log("photo:", photo);
+    console.log("userId:", userId);
+    console.log("nickName:", nickName);
+    const postId = await nanoid(15);
+    console.log("postId:", postId);
+    await setDoc(doc(db, "posts", postId), {
+      photo,
+      photoName,
+      photoLocationName,
+      location: location.coords,
+      userId,
+      nickName,
+    });
+  };
+
+  const uploadPhotoServer = async () => {
     try {
       const response = await fetch(photo);
 
       const file = await response.blob();
 
+      const metadata = {
+        contentType: "image/jpeg",
+      };
+
       const uniquePostId = Date.now().toString();
-      console.log("uniquePostId:", uniquePostId);
 
       const storageRef = ref(storage);
-      console.log("storageRef:", storageRef);
 
       const imagesRef = ref(storage, "images");
-      console.log("imagesRef:", imagesRef);
 
       const imageRef = ref(storage, `images/${uniquePostId}`);
-      console.log("imageRef:", imageRef);
 
-      const result = await uploadBytes(imageRef, response);
-      console.log("result:", result);
+      const result = await uploadBytes(imageRef, file, metadata);
+
+      const processedPhoto = await getDownloadURL(
+        ref(storage, `images/${uniquePostId}`)
+      );
+
+      return processedPhoto;
     } catch (error) {
       console.log("error:", error.message);
     }
