@@ -23,12 +23,17 @@ import { useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import { AntDesign } from "@expo/vector-icons";
 
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 import { authSignUpUser } from "../../../redux/auth/authOperations";
+
+const storage = getStorage();
 
 const initialState = {
   login: "",
   email: "",
   password: "",
+  photo: "",
 };
 
 const btnImgAdd = require("../../../../assets/images/add.png");
@@ -86,8 +91,46 @@ export default RegistrationScreen = ({ navigation }) => {
     };
   });
 
-  const handleSubmit = () => {
-    dispatch(authSignUpUser(state));
+  const uploadUserPhotoToServer = async () => {
+    try {
+      const response = await fetch(image);
+
+      const file = await response.blob();
+
+      const metadata = {
+        contentType: "image/jpeg",
+      };
+
+      const uniquePostId = Date.now().toString();
+
+      const storageRef = ref(storage);
+
+      const imagesRef = ref(storage, "usersPhoto");
+
+      const imageRef = ref(storage, `usersPhoto/${uniquePostId}`);
+
+      const result = await uploadBytes(imageRef, file, metadata);
+
+      const processedPhoto = await getDownloadURL(
+        ref(storage, `usersPhoto/${uniquePostId}`)
+      );
+      console.log("processedPhoto:", processedPhoto);
+      setState((state) => ({ ...state, photo: processedPhoto }));
+
+      return processedPhoto;
+    } catch (error) {
+      console.log("error:", error.message);
+    }
+  };
+
+  const handleSubmit = async () => {
+    const photo = await uploadUserPhotoToServer();
+    console.log("photo:", photo);
+
+    console.log("state:", state);
+
+    // =================
+    dispatch(authSignUpUser({ ...state, photo }));
     setState(initialState);
   };
 

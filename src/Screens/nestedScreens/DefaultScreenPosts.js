@@ -1,19 +1,10 @@
-import {
-  View,
-  StyleSheet,
-  Text,
-  FlatList,
-  Image,
-  TouchableWithoutFeedback,
-  Platform,
-  KeyboardAvoidingView,
-  ImageBackground,
-  Keyboard,
-} from "react-native";
+import { View, StyleSheet, Text, FlatList, Image } from "react-native";
 
 import { collection, getDocs } from "firebase/firestore";
 
 import { useState, useEffect } from "react";
+
+import { useSelector } from "react-redux";
 
 import { db } from "../../../firebase/config";
 
@@ -23,6 +14,8 @@ import { SimpleLineIcons } from "@expo/vector-icons";
 
 export default DefaultScreenPosts = ({ route, navigation }) => {
   const [posts, setPosts] = useState([]);
+
+  const { photo, email, nickName } = useSelector((state) => state.auth);
 
   const getAllPosts = async () => {
     const querySnapshot = await getDocs(collection(db, "posts"));
@@ -35,7 +28,7 @@ export default DefaultScreenPosts = ({ route, navigation }) => {
 
   useEffect(() => {
     getAllPosts();
-  });
+  }, []);
 
   return (
     <View style={styles.mainContainer}>
@@ -54,8 +47,14 @@ export default DefaultScreenPosts = ({ route, navigation }) => {
               height: 60,
               backgroundColor: "#E8E8E8",
               borderRadius: 16,
+              overflow: "hidden",
             }}
-          ></View>
+          >
+            <Image
+              source={{ uri: photo }}
+              style={{ width: "100%", height: "100%", borderWidth: 2 }}
+            />
+          </View>
           <View style={{ marginLeft: 8, justifyContent: "center" }}>
             <Text
               style={{
@@ -65,7 +64,7 @@ export default DefaultScreenPosts = ({ route, navigation }) => {
                 color: "#212121",
               }}
             >
-              User Name
+              {nickName}
             </Text>
 
             <Text
@@ -76,7 +75,7 @@ export default DefaultScreenPosts = ({ route, navigation }) => {
                 color: "rgba(33, 33, 33, 0.8)",
               }}
             >
-              email@example.com
+              {email}
             </Text>
           </View>
         </View>

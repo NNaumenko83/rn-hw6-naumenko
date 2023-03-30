@@ -23,8 +23,9 @@ export const authSignInUser =
   };
 
 export const authSignUpUser =
-  ({ login, email, password }) =>
+  ({ login, email, password, photo }) =>
   async (dispatch) => {
+    console.log("photo:", photo);
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -33,13 +34,16 @@ export const authSignUpUser =
       );
       await updateProfile(userCredential.user, {
         displayName: login,
+        photoURL: photo,
       });
 
-      const { uid, displayName } = userCredential.user;
+      const { uid, displayName, photoURL } = userCredential.user;
       dispatch(
         updateUserProfile({
           userId: uid,
           nickName: displayName,
+          photo: photoURL,
+          email,
         })
       );
       dispatch(authStateChange({ stateChange: true }));
@@ -65,6 +69,8 @@ export const onAuthStateChangedUser = () => async (dispatch) => {
         updateUserProfile({
           userId: user.uid,
           nickName: user.displayName,
+          photo: user.photoURL,
+          email: user.email,
         })
       );
       dispatch(authStateChange({ stateChange: true }));
