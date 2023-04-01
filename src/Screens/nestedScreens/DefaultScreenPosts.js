@@ -1,6 +1,6 @@
 import { View, StyleSheet, Text, FlatList, Image } from "react-native";
 
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, onSnapshot } from "firebase/firestore";
 
 import { useState, useEffect } from "react";
 
@@ -8,7 +8,6 @@ import { useSelector } from "react-redux";
 
 import { db } from "../../../firebase/config";
 
-// Icons
 import { FontAwesome5 } from "@expo/vector-icons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 
@@ -18,12 +17,15 @@ export default DefaultScreenPosts = ({ route, navigation }) => {
   const { photo, email, nickName } = useSelector((state) => state.auth);
 
   const getAllPosts = async () => {
-    const querySnapshot = await getDocs(collection(db, "posts"));
-    const postsArray = [];
-    querySnapshot.forEach((doc) => {
-      postsArray.push({ id: doc.id, ...doc.data() });
+    const q = await query(collection(db, "posts"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const postsArray = [];
+      querySnapshot.forEach((doc) => {
+        postsArray.push({ id: doc.id, ...doc.data() });
+      });
+      console.log("Current posts: ", postsArray);
+      setPosts(postsArray);
     });
-    setPosts(postsArray);
   };
 
   useEffect(() => {
@@ -117,10 +119,13 @@ export default DefaultScreenPosts = ({ route, navigation }) => {
                   size={18}
                   color="#BDBDBD"
                   onPress={() => {
-                    navigation.navigate("CommentsScreen", { postId: item.id });
+                    navigation.navigate("CommentsScreen", {
+                      postId: item.id,
+                      imageUrl: item.photo,
+                    });
                   }}
                 />
-                <Text
+                {/* <Text
                   style={{
                     marginLeft: 9,
                     fontSize: 16,
@@ -129,7 +134,7 @@ export default DefaultScreenPosts = ({ route, navigation }) => {
                   }}
                 >
                   0
-                </Text>
+                </Text> */}
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <SimpleLineIcons

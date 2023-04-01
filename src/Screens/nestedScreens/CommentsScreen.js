@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   FlatList,
 } from "react-native";
+import { useDispatch } from "react-redux";
 
 import { useSelector } from "react-redux";
 
@@ -22,8 +23,9 @@ export default CommentsScreen = ({ route }) => {
   const [comment, setComment] = useState("");
   const [sendedComment, setSendedComment] = useState("");
   const [allComments, setAllComments] = useState([]);
-  const { nickName } = useSelector((state) => state.auth);
-  const { postId } = route.params;
+  const { nickName, photo } = useSelector((state) => state.auth);
+  const { postId, imageUrl } = route.params;
+  const dispatch = useDispatch();
 
   const handleCommentChange = (text) => {
     setComment(text);
@@ -42,9 +44,11 @@ export default CommentsScreen = ({ route }) => {
     addDoc(colRef, {
       comment,
       nickName,
+      userPhoto: photo,
     });
     setSendedComment(comment);
     setComment("");
+    Keyboard.dismiss();
   };
 
   const getAllPosts = async () => {
@@ -69,27 +73,37 @@ export default CommentsScreen = ({ route }) => {
     >
       <View style={styles.container}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: "https://picsum.photos/200" }}
-            style={styles.image}
-          />
+          <Image source={{ uri: imageUrl }} style={styles.image} />
         </View>
+
         <SafeAreaView style={styles.containerListComments}>
           <FlatList
             data={allComments}
-            renderItem={({ item }) => (
-              <View style={styles.containerComment}>
-                <View style={styles.textContainerComment}>
-                  <Text style={styles.imageComment}>{item.comment}</Text>
+            renderItem={({ item }) =>
+              nickName === item.nickName ? (
+                <View style={styles.containerComment}>
+                  <View style={styles.textContainerCommentOwn}>
+                    <Text style={styles.textComment}>{item.comment}</Text>
+                  </View>
+
+                  <Image
+                    source={{ uri: item.userPhoto }}
+                    style={styles.imageCommentOwn}
+                  />
                 </View>
-                <Image
-                  source={{ uri: "https://picsum.photos/200" }}
-                  style={styles.imageComment}
-                />
-              </View>
-            )}
+              ) : (
+                <View style={styles.containerComment}>
+                  <Image
+                    source={{ uri: item.userPhoto }}
+                    style={styles.imageCommentOther}
+                  />
+                  <View style={styles.textContainerCommentOther}>
+                    <Text style={styles.textComment}>{item.comment}</Text>
+                  </View>
+                </View>
+              )
+            }
             keyExtractor={(item) => item.id}
-            // extraData={selectedId}
           />
         </SafeAreaView>
         <View style={styles.inputContainer}>
@@ -176,26 +190,43 @@ const styles = StyleSheet.create({
   },
 
   containerComment: {
-    borderWidth: 2,
     borderRadius: 5,
     flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
+
     marginHorizontal: 16,
     marginBottom: 24,
   },
-  textContainerComment: {
+  textContainerCommentOwn: {
     flex: 1,
+    borderBottomRightRadius: 6,
+    borderBottomLeftRadius: 6,
+    borderTopLeftRadius: 6,
+    padding: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.03)",
   },
-  imageComment: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  textContainerCommentOther: {
+    flex: 1,
+    borderBottomRightRadius: 6,
+    borderBottomLeftRadius: 6,
+    borderTopRightRadius: 6,
+    padding: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.03)",
+  },
+  imageCommentOwn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     marginLeft: 16,
   },
+  imageCommentOther: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginRight: 16,
+  },
   textComment: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 13,
+    lineHeight: 18,
   },
   containerListComments: {
     marginTop: 34,

@@ -70,7 +70,7 @@ export const useRoute = (isAuth) => {
           tabBarIcon: ({ focused, size, color }) => (
             <Ionicons name="md-person-outline" size={24} color={color} />
           ),
-          title: "Профиль",
+          headerShown: false,
         }}
       ></MainTab.Screen>
     </MainTab.Navigator>
